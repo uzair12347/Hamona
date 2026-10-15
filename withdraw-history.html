@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdrawal History - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .history-header {
+      background: linear-gradient(135deg, #d32f2f, #8b0000);
+      color: #fff;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .history-header h2 { font-size: 26px; margin-bottom: 8px; }
+    .history-header p { font-size: 14px; opacity: 0.9; }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #ffd70033;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .stat-box .num {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffd700;
+    }
+    .stat-box .lbl {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 10px 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #ffd70033;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: 0.3s;
+      color: #aaa;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .filter-tab.active {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+      border-color: #ffd700;
+    }
+
+    .withdraw-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #ffd70033;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 12px;
+      transition: 0.3s;
+    }
+    .withdraw-card:hover {
+      border-color: #ffd700;
+      transform: translateX(3px);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .card-id {
+      font-size: 11px;
+      color: #888;
+      font-family: 'Courier New', monospace;
+      letter-spacing: 1px;
+    }
+    .card-amount {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      color: #ff5555;
+    }
+    .card-amount.pending { color: #ffa500; }
+    .card-amount.rejected { color: #666; text-decoration: line-through; opacity: 0.6; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-pending {
+      background: rgba(255,165,0,0.15);
+      color: #ffa500;
+      border: 1px solid #ffa50066;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .badge-approved {
+      background: rgba(40,167,69,0.15);
+      color: #28a745;
+      border: 1px solid #28a74566;
+    }
+    .badge-rejected {
+      background: rgba(255,85,85,0.15);
+      color: #ff5555;
+      border: 1px solid #ff555566;
+    }
+
+    .card-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .detail-item {
+      background: rgba(0,0,0,0.3);
+      padding: 12px;
+      border-radius: 10px;
+    }
+    .detail-item .lbl {
+      font-size: 10px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .detail-item .val {
+      font-size: 13px;
+      color: #fff;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .card-note {
+      margin-top: 15px;
+      padding: 12px 15px;
+      border-radius: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .note-icon { font-size: 18px; flex-shrink: 0; }
+    .note-pending {
+      background: rgba(255,165,0,0.08);
+      border-left: 3px solid #ffa500;
+      color: #ffcc80;
+    }
+    .note-approved {
+      background: rgba(40,167,69,0.08);
+      border-left: 3px solid #28a745;
+      color: #a5d6a7;
+    }
+    .note-rejected {
+      background: rgba(255,85,85,0.08);
+      border-left: 3px solid #ff5555;
+      color: #ef9a9a;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #888;
+    }
+    .empty-state .icon { font-size: 60px; margin-bottom: 20px; }
+    .empty-state h3 { color: #ffd700; margin-bottom: 10px; font-size: 20px; }
+    .empty-state p { font-size: 14px; margin-bottom: 25px; }
+
+    @media (max-width: 600px) {
+      .stats-strip { grid-template-columns: repeat(2, 1fr); }
+      .card-amount { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">💰 Hamona International</div>
+    <div class="nav-links">
+       <a href="dashboard.html">Dashboard</a>
+      <a href="plans.html">Plans</a>
+      <a href="team.html">Team</a>
+      <a href="my-plan.html">My Plan</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="deposit-history.html">Deposit History</a>
+      <a href="withdraw-history.html">Withdraw History</a>
+      <a href="task.html">Task</a>
+      <a href="support.html">Support</a>
+      <a href="#" id="logoutBtn" style="color:#ff5555;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="padding:20px; max-width:900px; margin:auto;">
+
+    <div class="history-header">
+      <h2>💸 Withdrawal History</h2>
+      <p>Aap ki saari withdrawal requests ka record</p>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat-box">
+        <div class="num" id="statTotal">0</div>
+        <div class="lbl">Total Requests</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statApproved">0</div>
+        <div class="lbl">Approved</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statPending">0</div>
+        <div class="lbl">Pending</div>
+      </div>
+      <div class="stat-box">
+        <div class="num" id="statAmount">0</div>
+        <div class="lbl">Total Withdrawn</div>
+      </div>
+    </div>
+
+    <div class="filter-tabs">
+      <div class="filter-tab active" data-filter="all">📋 All</div>
+      <div class="filter-tab" data-filter="pending">⏳ Pending</div>
+      <div class="filter-tab" data-filter="approved">✅ Approved</div>
+      <div class="filter-tab" data-filter="rejected">❌ Rejected</div>
+    </div>
+
+    <div id="contentArea">
+      <div class="empty-state">⏳ Loading...</div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { auth, db } from '/firebase-config.js';
+    import { onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { collection, query, where, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let currentUser = null;
+    let allWithdrawals = [];
+    let currentFilter = 'all';
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+
+      try {
+        const q = query(
+          collection(db, 'withdrawals'),
+          where('userId', '==', user.uid)
+        );
+        const snap = await getDocs(q);
+        allWithdrawals = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        allWithdrawals.sort((a, b) => {
+          const ta = a.createdAt?.toDate?.() || new Date(0);
+          const tb = b.createdAt?.toDate?.() || new Date(0);
+          return tb - ta;
+        });
+
+        updateStats();
+        renderList();
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('contentArea').innerHTML =
+          `<div class="empty-state">
+            <div class="icon">❌</div>
+            <h3>Error Loading</h3>
+            <p>${err.message}</p>
+          </div>`;
+      }
+    });
+
+    function updateStats() {
+      const approved = allWithdrawals.filter(w => w.status === 'approved');
+      const pending = allWithdrawals.filter(w => w.status === 'pending');
+
+      document.getElementById('statTotal').innerText = allWithdrawals.length;
+      document.getElementById('statApproved').innerText = approved.length;
+      document.getElementById('statPending').innerText = pending.length;
+
+      const totalAmount = approved.reduce((s, w) => s + (w.amount || 0), 0);
+      document.getElementById('statAmount').innerText =
+        totalAmount.toLocaleString() + ' PKR';
+    }
+
+    function renderList() {
+      const list = currentFilter === 'all'
+        ? allWithdrawals
+        : allWithdrawals.filter(w => w.status === currentFilter);
+
+      const content = document.getElementById('contentArea');
+
+      if (list.length === 0) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <h3>No ${currentFilter === 'all' ? '' : currentFilter} Withdrawals</h3>
+            <p>${currentFilter === 'all'
+              ? 'Aap ne abhi tak koi withdrawal request nahin bheji'
+              : `Koi ${currentFilter} withdrawal nahin mila`}</p>
+            <a href="withdraw.html" class="btn" style="text-decoration:none; display:inline-block;">
+              💸 Make a Withdrawal
+            </a>
+          </div>
+        `;
+        return;
+      }
+
+      content.innerHTML = list.map(w => {
+        const created = w.createdAt?.toDate?.()
+          ? w.createdAt.toDate().toLocaleString('en-GB', {
+              day: '2-digit', month: 'short', year: 'numeric',
+              hour: '2-digit', minute: '2-digit'
+            })
+          : 'Recently';
+
+        const approvedDate = w.approvedAt?.toDate?.()
+          ? w.approvedAt.toDate().toLocaleString('en-GB')
+          : null;
+        const rejectedDate = w.rejectedAt?.toDate?.()
+          ? w.rejectedAt.toDate().toLocaleString('en-GB')
+          : null;
+
+        const badgeClass = `badge-${w.status}`;
+        const badgeText = w.status === 'pending' ? '⏳ Pending' :
+                         w.status === 'approved' ? '✅ Approved' :
+                         '❌ Rejected';
+
+        const amountClass = w.status === 'approved' ? '' :
+                           w.status === 'pending' ? 'pending' : 'rejected';
+
+        let noteHtml = '';
+        if (w.status === 'pending') {
+          noteHtml = `
+            <div class="card-note note-pending">
+              <span class="note-icon">⏳</span>
+              <span><b>Pending Review:</b> Aap ki withdrawal request admin ke paas hai. 24-48 ghante mein process hogi.</span>
+            </div>
+          `;
+        } else if (w.status === 'approved') {
+          noteHtml = `
+            <div class="card-note note-approved">
+              <span class="note-icon">✅</span>
+              <span><b>Approved:</b> ${w.amount} PKR aap ke ${w.method} account (${w.accountNo}) mein bheja gaya.${approvedDate ? ' (' + approvedDate + ')' : ''}</span>
+            </div>
+          `;
+        } else if (w.status === 'rejected') {
+          noteHtml = `
+            <div class="card-note note-rejected">
+              <span class="note-icon">❌</span>
+              <span><b>Rejected:</b> Ye withdrawal reject ho gayi. Paisa aap ke balance mein wapas aa gaya.${rejectedDate ? ' (' + rejectedDate + ')' : ''}<br>Support se raabta karein agar masla hai.</span>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="withdraw-card">
+            <div class="card-head">
+              <div>
+                <div class="card-id">REF: #${w.id.slice(0, 10).toUpperCase()}</div>
+                <span class="status-badge ${badgeClass}" style="margin-top:8px; display:inline-block;">
+                  ${badgeText}
+                </span>
+              </div>
+              <div style="text-align:right;">
+                <div class="card-amount ${amountClass}">
+                  -${w.amount} PKR
+                </div>
+              </div>
+            </div>
+
+            <div class="card-details">
+              <div class="detail-item">
+                <div class="lbl">Method</div>
+                <div class="val">${w.method || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="lbl">Account Number</div>
+                <div class="val">${w.accountNo || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="lbl">Account Holder</div>
+                <div class="val">${w.accountName || '-'}</div>
+              </div>
+              <div class="detail-item">
+                <div class="lbl">Request Date</div>
+                <div class="val">${created}</div>
+              </div>
+              ${approvedDate ? `
+                <div class="detail-item">
+                  <div class="lbl">Approved On</div>
+                  <div class="val" style="color:#28a745;">${approvedDate}</div>
+                </div>
+              ` : ''}
+              ${rejectedDate ? `
+                <div class="detail-item">
+                  <div class="lbl">Rejected On</div>
+                  <div class="val" style="color:#ff5555;">${rejectedDate}</div>
+                </div>
+              ` : ''}
+            </div>
+
+            ${noteHtml}
+          </div>
+        `;
+      }).join('');
+    }
+
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderList();
+      });
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>

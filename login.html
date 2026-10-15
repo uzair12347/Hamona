@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div style="max-width:450px; margin:100px auto; padding:30px;" class="card">
+    <h1 style="text-align:center; color:#ffd700;">Sign In</h1>
+
+    <form id="loginForm" autocomplete="on">
+      <input type="email" id="email" class="input-field"
+             placeholder="Email" autocomplete="email" required>
+      <input type="password" id="password" class="input-field"
+             placeholder="Password" autocomplete="current-password" required>
+
+      <button type="submit" class="btn" style="width:100%; margin-top:15px;">
+        Login
+      </button>
+    </form>
+
+    <p style="text-align:center; margin-top:20px; font-size:14px;">
+      New here?
+      <a href="register.html" style="color:#ffd700;">Create Account</a>
+    </p>
+
+    <p id="message" style="text-align:center; margin-top:15px; font-size:14px;"></p>
+  </div>
+
+  <script type="module">
+    import { auth } from '/firebase-config.js';
+    import { signInWithEmailAndPassword }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const form = document.getElementById('loginForm');
+    const msg = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      msg.style.color = '#ffd700';
+      msg.innerText = '⏳ Logging in...';
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        msg.style.color = '#28a745';
+        msg.innerText = '✅ Login successful!';
+        setTimeout(() => window.location.href = 'dashboard.html', 800);
+      } catch (err) {
+        console.error(err);
+        msg.style.color = '#ff5555';
+        if (err.code === 'auth/user-not-found')
+          msg.innerText = '⚠️ No account found with this email';
+        else if (err.code === 'auth/wrong-password')
+          msg.innerText = '⚠️ Incorrect password';
+        else if (err.code === 'auth/invalid-credential')
+          msg.innerText = '⚠️ Invalid email or password';
+        else
+          msg.innerText = '❌ ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

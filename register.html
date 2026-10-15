@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div style="max-width:450px; margin:80px auto; padding:30px;" class="card">
+    <h1 style="text-align:center; color:#ffd700;">Create Account</h1>
+    <p style="text-align:center; color:#aaa; margin:10px 0 20px;">Join Hamona International</p>
+
+    <form id="registerForm" autocomplete="on">
+      <input type="text" id="fullname" class="input-field"
+             placeholder="Full Name" autocomplete="name" required>
+
+      <input type="email" id="email" class="input-field"
+             placeholder="Email" autocomplete="email" required>
+
+      <input type="tel" id="phone" class="input-field"
+             placeholder="Phone Number" autocomplete="tel" required>
+
+      <input type="password" id="password" class="input-field"
+             placeholder="Password" autocomplete="new-password" required>
+
+      <input type="text" id="referral" class="input-field"
+             placeholder="Referral Code (Optional)" autocomplete="off">
+
+      <button type="submit" class="btn" style="width:100%; margin-top:15px;">
+        Register & Get 200 PKR Bonus
+      </button>
+    </form>
+
+    <p style="text-align:center; margin-top:20px; font-size:14px;">
+      Already have an account?
+      <a href="login.html" style="color:#ffd700;">Sign In</a>
+    </p>
+
+    <p id="message" style="text-align:center; margin-top:15px; font-size:14px;"></p>
+  </div>
+
+  <script type="module">
+    // ✅ FIXED PATH
+    import { auth, db } from '/firebase-config.js';
+    import { createUserWithEmailAndPassword }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, setDoc, serverTimestamp, getDoc, updateDoc,
+             increment, collection, query, where, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    // ✅ URL se referral code nikaalein (auto-fill)
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralFromUrl = urlParams.get('ref') || '';
+    if (referralFromUrl) {
+      document.getElementById('referral').value = referralFromUrl;
+    }
+
+    // ✅ 8-character code generate (e.g. HAM7X9K2)
+    function generateReferralCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = 'HAM';
+      for (let i = 0; i < 5; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    // ✅ Unique code confirm
+    async function getUniqueReferralCode() {
+      let code, attempts = 0;
+      while (attempts < 10) {
+        code = generateReferralCode();
+        const q = query(collection(db, 'users'), where('referralCode', '==', code));
+        const snap = await getDocs(q);
+        if (snap.empty) return code;
+        attempts++;
+      }
+      throw new Error('Could not generate unique code');
+    }
+
+    const form = document.getElementById('registerForm');
+    const msg = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fullname = document.getElementById('fullname').value.trim();
+      const email    = document.getElementById('email').value.trim();
+      const phone    = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const referral = document.getElementById('referral').value.trim();
+
+      if (!fullname || !email || !phone || !password) {
+        msg.style.color = '#ff5555';
+        msg.innerText = '⚠️ Please fill all fields';
+        return;
+      }
+      if (password.length < 6) {
+        msg.style.color = '#ff5555';
+        msg.innerText = '⚠️ Password must be at least 6 characters';
+        return;
+      }
+
+      msg.style.color = '#ffd700';
+      msg.innerText = '⏳ Creating account...';
+
+      try {
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+
+        // ✅ Apna referral code generate karein
+        const myReferralCode = await getUniqueReferralCode();
+
+        // ✅ Referrer dhoondein — UID ya CODE dono support
+        let validReferrerUid = null;
+        if (referral) {
+          try {
+            // Pehle UID se check (purane links ke liye)
+            const uidDoc = await getDoc(doc(db, 'users', referral));
+            if (uidDoc.exists()) {
+              validReferrerUid = referral;
+            } else {
+              // Phir code se check (naye links ke liye)
+              const q = query(
+                collection(db, 'users'),
+                where('referralCode', '==', referral.toUpperCase())
+              );
+              const snap = await getDocs(q);
+              if (!snap.empty) {
+                validReferrerUid = snap.docs[0].id;
+              }
+            }
+          } catch (err) {
+            console.warn('Referral lookup failed:', err);
+          }
+        }
+
+        // ✅ User document save karein
+        await setDoc(doc(db, 'users', uid), {
+          fullname,
+          email,
+          phone,
+          referral: referral || null,
+          referredBy: validReferrerUid,
+          referralCode: myReferralCode,
+          mainBalance: 200,
+          withdrawBalance: 200,
+          totalDeposit: 0,
+          totalEarning: 0,
+          referralCount: 0,
+          referralEarnings: { level1: 0, level2: 0, level3: 0 },
+          teamMembers: { level1: 0, level2: 0, level3: 0 },
+          activePlan: null,
+          lastCheckIn: null,
+          taskRewardClaimed: false,
+          withdrawAccount: null,
+          createdAt: serverTimestamp()
+        });
+
+        // ✅ Referrer ka count barhao
+        if (validReferrerUid) {
+          await updateDoc(doc(db, 'users', validReferrerUid), {
+            referralCount: increment(1)
+          });
+        }
+
+        msg.style.color = '#28a745';
+        msg.innerHTML = `✅ Registration successful!<br>
+          <b style="color:#ffd700;">Your Code: ${myReferralCode}</b><br>
+          200 PKR bonus added.`;
+        setTimeout(() => window.location.href = 'dashboard.html', 2500);
+
+      } catch (err) {
+        console.error(err);
+        msg.style.color = '#ff5555';
+        if (err.code === 'auth/email-already-in-use')
+          msg.innerText = '⚠️ This email is already registered';
+        else if (err.code === 'auth/invalid-email')
+          msg.innerText = '⚠️ Invalid email address';
+        else if (err.code === 'auth/weak-password')
+          msg.innerText = '⚠️ Password too weak (min 6 chars)';
+        else
+          msg.innerText = '❌ Error: ' + err.message;
+      }
+    });
+  </script>
+</body>
+</html>

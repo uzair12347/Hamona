@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">💰 Hamona International</div>
+    <div class="nav-links">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="plans.html">Plans</a>
+      <a href="team.html">Team</a>
+      <a href="my-plan.html">My Plan</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="deposit-history.html">Deposit History</a>
+      <a href="withdraw-history.html">Withdraw History</a>
+      <a href="task.html">Task</a>
+      <a href="support.html">Support</a>
+      <a href="#" id="logoutBtn" style="color:#ff5555;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="padding:20px;">
+    <h1 style="color:#ffd700;">Welcome, <span id="username">User</span></h1>
+
+    <!-- Balance Cards -->
+    <div class="dashboard-grid">
+      <div class="balance-card">
+        <p>Main Balance</p>
+        <h2 id="mainBalance">0 PKR</h2>
+      </div>
+      <div class="balance-card" style="background: linear-gradient(135deg, #00c853, #00796b);">
+        <p>Withdraw Balance</p>
+        <h2 id="withdrawBalance">0 PKR</h2>
+      </div>
+      <div class="balance-card" style="background: linear-gradient(135deg, #2196f3, #0d47a1);">
+        <p>Total Earnings</p>
+        <h2 id="totalEarning">0 PKR</h2>
+      </div>
+      <div class="balance-card" style="background: linear-gradient(135deg, #9c27b0, #4a148c);">
+        <p>Total Deposit</p>
+        <h2 id="totalDeposit">0 PKR</h2>
+      </div>
+    </div>
+
+    <!-- Check-In Section -->
+    <div class="card" style="margin:20px;">
+      <h2 style="color:#ffd700;">Daily Check-In</h2>
+      <p style="color:#aaa; margin:10px 0;">Check in daily to earn rewards</p>
+      <button class="checkin-btn" id="checkinBtn" onclick="dailyCheckIn()">✅ Check In Now</button>
+      <p id="checkinMsg" style="margin-top:10px; color:#28a745;"></p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dashboard-grid">
+      <a href="deposit.html" class="card" style="text-decoration:none; color:#fff; text-align:center;">
+        <h3>💵 Deposit</h3>
+        <p style="color:#aaa; font-size:13px;">Add funds to invest</p>
+      </a>
+      <a href="plans.html" class="card" style="text-decoration:none; color:#fff; text-align:center;">
+        <h3>📈 Investment Plans</h3>
+        <p style="color:#aaa; font-size:13px;">Choose a plan</p>
+      </a>
+      <a href="task.html" class="card" style="text-decoration:none; color:#fff; text-align:center;">
+        <h3>🎯 Tasks</h3>
+        <p style="color:#aaa; font-size:13px;">Refer 3 → Get 300 PKR</p>
+      </a>
+      <a href="support.html" class="card" style="text-decoration:none; color:#fff; text-align:center;">
+        <h3>📞 Customer Service</h3>
+        <p style="color:#aaa; font-size:13px;">24/7 Support</p>
+      </a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '/firebase-config.js';
+    import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let currentUser;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const data = snap.data();
+
+      document.getElementById('username').innerText = data.fullname;
+      document.getElementById('mainBalance').innerText = data.mainBalance + ' PKR';
+      document.getElementById('withdrawBalance').innerText = data.withdrawBalance + ' PKR';
+      document.getElementById('totalEarning').innerText = data.totalEarning + ' PKR';
+      document.getElementById('totalDeposit').innerText = data.totalDeposit + ' PKR';
+
+      // Check-in status
+      const today = new Date().toDateString();
+      if (data.lastCheckIn === today) {
+        const btn = document.getElementById('checkinBtn');
+        btn.disabled = true;
+        btn.innerText = '✅ Already Checked In Today';
+      }
+    });
+
+    window.dailyCheckIn = async function() {
+      const today = new Date().toDateString();
+      const userRef = doc(db, 'users', currentUser.uid);
+      const snap = await getDoc(userRef);
+      const data = snap.data();
+
+      if (data.lastCheckIn === today) {
+        alert('Already checked in today!');
+        return;
+      }
+
+      const reward = 10; // 10 PKR per check-in
+      await updateDoc(userRef, {
+        mainBalance: data.mainBalance + reward,
+        lastCheckIn: today
+      });
+
+      // Save check-in record
+      const { addDoc, collection } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js");
+      await addDoc(collection(db, 'users', currentUser.uid, 'checkins'), {
+        date: today, amount: reward, createdAt: serverTimestamp()
+      });
+
+      document.getElementById('checkinMsg').innerText = `✅ +${reward} PKR added!`;
+      setTimeout(() => location.reload(), 1500);
+    }
+
+    window.logout = async function() {
+      await signOut(auth);
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

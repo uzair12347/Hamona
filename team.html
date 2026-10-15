@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Team - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .ref-box {
+      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.05));
+      border: 1px solid #ffd70055;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    .ref-box h3 { color: #ffd700; margin-bottom: 8px; }
+    .ref-box p { color: #aaa; font-size: 13px; margin-bottom: 12px; }
+
+    .ref-input-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .ref-input-row input {
+      flex: 1;
+      padding: 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid #ffd70055;
+      border-radius: 10px;
+      color: #ffd700;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .level-tabs {
+      display: flex;
+      gap: 10px;
+      margin: 25px 0 15px;
+    }
+    .level-tab {
+      flex: 1;
+      padding: 15px;
+      background: rgba(255,255,255,0.05);
+      border: 2px solid #ffd70033;
+      border-radius: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .level-tab.active {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+      border-color: #ffd700;
+    }
+    .level-tab .t-perc { font-size: 22px; font-weight: 700; }
+    .level-tab .t-lbl { font-size: 12px; margin-top: 3px; }
+    .level-tab:not(.active) .t-perc { color: #ffd700; }
+    .level-tab:not(.active) .t-lbl { color: #aaa; }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 15px 0;
+    }
+    .stat-item {
+      background: rgba(255,215,0,0.08);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .stat-item .num {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffd700;
+    }
+    .stat-item .lbl {
+      font-size: 12px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .member-list { margin-top: 15px; }
+    .member-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 15px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 1px solid #ffffff11;
+    }
+    .member-info { flex: 1; }
+    .member-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .member-date {
+      font-size: 11px;
+      color: #888;
+      margin-top: 3px;
+    }
+    .member-badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-active { background: #28a745; color: #fff; }
+    .badge-inactive { background: #555; color: #aaa; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 10px; }
+    .empty-state p { font-size: 13px; }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #ffd700;
+    }
+
+    @media (max-width: 600px) {
+      .level-tabs { flex-direction: column; }
+      .ref-input-row { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">💰 Hamona International</div>
+    <div class="nav-links">
+       <a href="dashboard.html">Dashboard</a>
+      <a href="plans.html">Plans</a>
+      <a href="team.html">Team</a>
+      <a href="my-plan.html">My Plan</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="deposit-history.html">Deposit History</a>
+      <a href="withdraw-history.html">Withdraw History</a>
+      <a href="task.html">Task</a>
+      <a href="support.html">Support</a>
+      <a href="#" id="logoutBtn" style="color:#ff5555;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="padding:20px; max-width:900px; margin:auto;">
+
+    <!-- Header -->
+    <h1 style="color:#ffd700;">👥 My Team</h1>
+    <p style="color:#aaa; font-size:14px; margin-top:5px;">
+      Refer friends and earn commission on every deposit they make
+    </p>
+
+    <!-- Referral Link Box -->
+    <div class="ref-box">
+      <h3>🔗 Your Referral Link</h3>
+      <p>Share this link — when someone joins and deposits, you earn commission</p>
+      <div class="ref-input-row">
+        <input type="text" id="refLink" readonly value="Loading...">
+        <button class="btn" id="copyBtn" style="min-width:120px;">📋 Copy</button>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="dashboard-grid" style="padding:0;">
+      <div class="balance-card">
+        <p style="font-size:13px;">Total Team Members</p>
+        <h2 id="totalMembers">0</h2>
+      </div>
+      <div class="balance-card" style="background: linear-gradient(135deg, #00c853, #00796b);">
+        <p style="font-size:13px;">Total Commission Earned</p>
+        <h2 id="totalCommission">0 PKR</h2>
+      </div>
+    </div>
+
+    <!-- Level Tabs -->
+    <div class="level-tabs">
+      <div class="level-tab active" data-level="1">
+        <div class="t-perc">25%</div>
+        <div class="t-lbl">Level 1</div>
+      </div>
+      <div class="level-tab" data-level="2">
+        <div class="t-perc">10%</div>
+        <div class="t-lbl">Level 2</div>
+      </div>
+      <div class="level-tab" data-level="3">
+        <div class="t-perc">3%</div>
+        <div class="t-lbl">Level 3</div>
+      </div>
+    </div>
+
+    <!-- Level Content -->
+    <div id="levelContent">
+      <div class="loading">⏳ Loading team...</div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { auth, db } from '/firebase-config.js';
+    import { onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc, collection, query, where, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let currentUser = null;
+    let userData = null;
+    let teamData = { level1: [], level2: [], level3: [] };
+    let currentLevel = 1;
+
+    // ─── AUTH CHECK ───
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = user;
+
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (!snap.exists()) {
+          window.location.href = 'login.html';
+          return;
+        }
+        userData = snap.data();
+
+        // Referral link set karein
+        const baseUrl = window.location.origin + window.location.pathname.replace('team.html', 'register.html');
+        document.getElementById('refLink').value = `${baseUrl}?ref=${user.uid}`;
+
+        // Team load karein
+        await loadTeam(user.uid);
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('levelContent').innerHTML =
+          `<div class="empty-state"><div class="icon">⚠️</div><p>Error loading team: ${err.message}</p></div>`;
+      }
+    });
+
+    // ─── TEAM LOAD KARO ───
+    async function loadTeam(uid) {
+      // Level 1 — direct referrals
+      const l1Query = query(collection(db, 'users'), where('referredBy', '==', uid));
+      const l1Snap = await getDocs(l1Query);
+      teamData.level1 = l1Snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+
+      // Level 2 — L1 walon ke referrals
+      const l2Promises = teamData.level1.map(m =>
+        getDocs(query(collection(db, 'users'), where('referredBy', '==', m.uid)))
+      );
+      const l2Results = await Promise.all(l2Promises);
+      teamData.level2 = l2Results.flatMap(snap =>
+        snap.docs.map(d => ({ uid: d.id, ...d.data() }))
+      );
+
+      // Level 3 — L2 walon ke referrals
+      const l3Promises = teamData.level2.map(m =>
+        getDocs(query(collection(db, 'users'), where('referredBy', '==', m.uid)))
+      );
+      const l3Results = await Promise.all(l3Promises);
+      teamData.level3 = l3Results.flatMap(snap =>
+        snap.docs.map(d => ({ uid: d.id, ...d.data() }))
+      );
+
+      // Totals update karein
+      const total = teamData.level1.length + teamData.level2.length + teamData.level3.length;
+      document.getElementById('totalMembers').innerText = total;
+
+      const earnings = userData.referralEarnings || { level1: 0, level2: 0, level3: 0 };
+      const totalCommission = (earnings.level1 || 0) + (earnings.level2 || 0) + (earnings.level3 || 0);
+      document.getElementById('totalCommission').innerText = totalCommission + ' PKR';
+
+      // Level 1 render karein by default
+      renderLevel(1);
+    }
+
+    // ─── LEVEL RENDER KARO ───
+    function renderLevel(level) {
+      currentLevel = level;
+      const members = teamData['level' + level] || [];
+      const earnings = userData.referralEarnings || { level1: 0, level2: 0, level3: 0 };
+      const earned = earnings['level' + level] || 0;
+      const perc = level === 1 ? '25%' : level === 2 ? '10%' : '3%';
+
+      let html = `
+        <div class="stats-row">
+          <div class="stat-item">
+            <div class="num">${members.length}</div>
+            <div class="lbl">Level ${level} Members</div>
+          </div>
+          <div class="stat-item">
+            <div class="num">${earned} PKR</div>
+            <div class="lbl">Commission Earned (${perc})</div>
+          </div>
+        </div>
+        <div class="member-list">
+      `;
+
+      if (members.length === 0) {
+        html += `
+          <div class="empty-state">
+            <div class="icon">👤</div>
+            <p>No members in Level ${level} yet</p>
+            <p style="font-size:12px; margin-top:8px;">
+              Share your referral link to build your team
+            </p>
+          </div>
+        `;
+      } else {
+        html += members.map(m => {
+          const isActive = (m.totalDeposit || 0) > 0;
+          const joined = m.createdAt?.toDate
+            ? m.createdAt.toDate().toLocaleDateString('en-GB')
+            : 'Recently';
+          return `
+            <div class="member-item">
+              <div class="member-info">
+                <div class="member-name">${maskName(m.fullname || 'User')}</div>
+                <div class="member-date">Joined: ${joined}</div>
+              </div>
+              <span class="member-badge ${isActive ? 'badge-active' : 'badge-inactive'}">
+                ${isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+          `;
+        }).join('');
+      }
+
+      html += `</div>`;
+      document.getElementById('levelContent').innerHTML = html;
+    }
+
+    // ─── NAAM MASK KARO (privacy) ───
+    function maskName(name) {
+      if (!name) return 'User';
+      if (name.length <= 3) return name + '***';
+      return name.substring(0, 3) + '***' + name.substring(name.length - 1);
+    }
+
+    // ─── TAB SWITCHING ───
+    document.querySelectorAll('.level-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        renderLevel(parseInt(tab.dataset.level));
+      });
+    });
+
+    // ─── COPY BUTTON ───
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const input = document.getElementById('refLink');
+      try {
+        await navigator.clipboard.writeText(input.value);
+        const btn = document.getElementById('copyBtn');
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => btn.innerText = '📋 Copy', 2000);
+      } catch (err) {
+        // Fallback
+        input.select();
+        document.execCommand('copy');
+        alert('Link copied!');
+      }
+    });
+
+    // ─── LOGOUT ───
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (confirm('Logout karna chahte hain?')) {
+        await signOut(auth);
+        window.location.href = 'login.html';
+      }
+    });
+  </script>
+</body>
+</html>

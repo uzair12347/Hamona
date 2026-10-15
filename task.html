@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .task-header {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+      border-radius: 15px;
+      padding: 25px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .task-header h2 { font-size: 26px; margin-bottom: 8px; }
+    .task-header p { font-size: 14px; }
+
+    .task-tabs {
+      display: flex;
+      gap: 8px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    .task-tab {
+      flex: 1;
+      min-width: 100px;
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #ffd70033;
+      border-radius: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s;
+      color: #aaa;
+      font-size: 13px;
+    }
+    .task-tab.active {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+      border-color: #ffd700;
+      font-weight: 600;
+    }
+
+    .task-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid #ffd70033;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 12px 0;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      transition: 0.3s;
+    }
+    .task-card:hover { border-color: #ffd700; }
+
+    .task-icon {
+      font-size: 32px;
+      min-width: 50px;
+      text-align: center;
+    }
+
+    .task-body { flex: 1; }
+    .task-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .task-desc {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+
+    .task-progress {
+      height: 6px;
+      background: #333;
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+    .task-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffd700, #ffa500);
+      transition: 0.5s;
+    }
+
+    .task-status {
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+    }
+    .task-status .reward {
+      color: #ffd700;
+      font-weight: 700;
+    }
+
+    .task-action {
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .task-btn {
+      padding: 10px 18px;
+      border-radius: 25px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 13px;
+      transition: 0.3s;
+    }
+    .task-btn-claim {
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      color: #fff;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .task-btn-done {
+      background: rgba(40,167,69,0.2);
+      color: #28a745;
+      border: 1px solid #28a74555;
+    }
+    .task-btn-locked {
+      background: rgba(255,255,255,0.08);
+      color: #666;
+      cursor: not-allowed;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.05));
+      border: 2px solid #ffd700;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .summary-card h3 { color: #ffd700; margin-bottom: 10px; }
+    .summary-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .summary-stat {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .summary-stat .num {
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffd700;
+    }
+    .summary-stat .lbl {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #888;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 2px solid #ffd70055;
+      border-radius: 18px;
+      padding: 30px 25px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-icon { font-size: 50px; margin-bottom: 15px; }
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .modal-message {
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.5;
+      margin-bottom: 20px;
+      white-space: pre-line;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .modal-actions button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 25px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .modal-btn-primary {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+    }
+    .modal-btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid #ffffff22 !important;
+    }
+
+    @media (max-width: 600px) {
+      .task-card { flex-direction: column; text-align: center; }
+      .task-action { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">💰 Hamona International</div>
+    <div class="nav-links">
+       <a href="dashboard.html">Dashboard</a>
+      <a href="plans.html">Plans</a>
+      <a href="team.html">Team</a>
+      <a href="my-plan.html">My Plan</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="deposit-history.html">Deposit History</a>
+      <a href="withdraw-history.html">Withdraw History</a>
+      <a href="task.html">Task</a>
+      <a href="support.html">Support</a>
+      <a href="#" id="logoutBtn" style="color:#ff5555;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="padding:20px; max-width:900px; margin:auto;">
+
+    <!-- Header -->
+    <div class="task-header">
+      <h2>🎯 Task Center</h2>
+      <p>Complete tasks and earn rewards</p>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-card">
+      <h3>💰 Total Task Earnings</h3>
+      <h1 id="totalTaskEarnings" style="color:#ffd700; font-size:36px;">0 PKR</h1>
+      <div class="summary-stats">
+        <div class="summary-stat">
+          <div class="num" id="completedCount">0</div>
+          <div class="lbl">Tasks Completed</div>
+        </div>
+        <div class="summary-stat">
+          <div class="num" id="availableCount">0</div>
+          <div class="lbl">Available Now</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="task-tabs">
+      <div class="task-tab active" data-tab="all">📋 All</div>
+      <div class="task-tab" data-tab="daily">📅 Daily</div>
+      <div class="task-tab" data-tab="team">👥 Team</div>
+      <div class="task-tab" data-tab="special">⭐ Special</div>
+    </div>
+
+    <!-- Tasks -->
+    <div id="taskList">
+      <div class="empty-state">⏳ Loading tasks...</div>
+    </div>
+
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal-overlay">
+    <div class="modal-box" id="modalBox">
+      <div class="modal-icon" id="modalIcon">⚠️</div>
+      <div class="modal-title" id="modalTitle">Title</div>
+      <div class="modal-message" id="modalMsg">Message</div>
+      <div class="modal-actions">
+        <button class="modal-btn-secondary" id="modalCancel" style="display:none;">Cancel</button>
+        <button class="modal-btn-primary" id="modalOk">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '/firebase-config.js';
+    import { onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc, increment, collection, query,
+             where, getDocs, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let currentUser = null;
+    let userData = null;
+    let teamStats = { count: 0, depositingCount: 0, totalDeposit: 0 };
+    let currentTab = 'all';
+
+    // ═══ MODAL ═══
+    function showModal({ icon='⚠️', title, message, type='warning',
+                        okText='OK', onOk=null, showCancel=false,
+                        cancelText='Cancel' }) {
+      const modal = document.getElementById('modal');
+      const box = document.getElementById('modalBox');
+      document.getElementById('modalIcon').innerText = icon;
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMsg').innerText = message;
+
+      const titleEl = document.getElementById('modalTitle');
+      if (type === 'error') {
+        box.style.borderColor = '#ff555588';
+        titleEl.style.color = '#ff5555';
+      } else if (type === 'success') {
+        box.style.borderColor = '#28a74588';
+        titleEl.style.color = '#28a745';
+      } else {
+        box.style.borderColor = '#ffd70088';
+        titleEl.style.color = '#ffd700';
+      }
+
+      const cancelBtn = document.getElementById('modalCancel');
+      cancelBtn.style.display = showCancel ? 'block' : 'none';
+      cancelBtn.innerText = cancelText;
+
+      const okBtn = document.getElementById('modalOk');
+      okBtn.innerText = okText;
+
+      const newOk = okBtn.cloneNode(true);
+      okBtn.parentNode.replaceChild(newOk, okBtn);
+      newOk.onclick = () => { modal.classList.remove('show'); if (onOk) onOk(); };
+
+      const newCancel = cancelBtn.cloneNode(true);
+      cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+      newCancel.onclick = () => { modal.classList.remove('show'); };
+
+      modal.classList.add('show');
+    }
+
+    // ═══ LOAD ═══
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        userData = snap.data();
+
+        // Team stats nikaalein
+        const l1 = await getDocs(query(collection(db, 'users'),
+  where('referredBy', '==', user.uid)));
+teamStats.count = l1.size;
+
+// ✅ Sirf depositors count karein
+const depositors = l1.docs.filter(d => (d.data().totalDeposit || 0) > 0);
+teamStats.depositingCount = depositors.length;
+
+// ✅ Total deposit calculate karein (SIRF EK BAAR)
+teamStats.totalDeposit = l1.docs.reduce((sum, d) =>
+  sum + (d.data().totalDeposit || 0), 0);
+
+        renderTasks();
+      } catch (err) {
+        console.error(err);
+        document.getElementById('taskList').innerHTML =
+          `<div class="empty-state">❌ Error: ${err.message}</div>`;
+      }
+    });
+
+    // ═══ TASKS DEFINE ═══
+    function getTasks() {
+      const earnings = userData.taskEarnings || {};
+      const today = new Date().toDateString();
+      const checkedInToday = userData.lastCheckIn === today;
+
+      return [
+        {
+          id: 'checkin',
+          icon: '📅',
+          category: 'daily',
+          title: 'Daily Check-in',
+          desc: checkedInToday
+            ? 'Kal dobara check-in karein'
+            : 'Aaj check-in karein aur 10 PKR payein',
+          reward: 10,
+          progress: checkedInToday ? 1 : 0,
+          target: 1,
+          status: checkedInToday ? 'completed' : 'available',
+          action: 'checkin'
+        },
+        {
+          id: 'bind_account',
+          icon: '🔗',
+          category: 'special',
+          title: 'Bind Withdraw Account',
+          desc: 'Withdraw account bind karein aur 50 PKR payein',
+          reward: 50,
+          progress: userData.withdrawAccount ? 1 : 0,
+          target: 1,
+          status: userData.withdrawAccount
+            ? (earnings.bind_account ? 'completed' : 'claimable')
+            : 'available',
+          action: 'bind'
+        },
+        {
+          id: 'first_plan',
+          icon: '📈',
+          category: 'special',
+          title: 'Buy First Plan',
+          desc: 'Apna pehla investment plan kharidein',
+          reward: 100,
+          progress: userData.activePlan ? 1 : 0,
+          target: 1,
+          status: userData.activePlan
+            ? (earnings.first_plan ? 'completed' : 'claimable')
+            : 'available',
+          action: 'plan'
+        },
+        
+          {
+  id: 'invite_3',
+  icon: '👥',
+  category: 'team',
+  title: 'Invite 3 Depositing Members',                 // ✅ Updated
+  desc: '3 members join karein AUR deposit karein (min 500 PKR)',   // ✅ Updated
+  reward: 300,
+  progress: Math.min(teamStats.depositingCount, 3),
+  target: 3,
+  status: teamStats.depositingCount >= 3                 // ✅ Fixed
+    ? (earnings.invite_3 ? 'completed' : 'claimable')
+    : 'in_progress',
+  action: 'invite'
+        },
+        {
+          id: 'team_deposit_5k',
+          icon: '💎',
+          category: 'team',
+          title: 'Team Deposit: 5,000 PKR',
+          desc: 'Team ka total deposit 5,000 PKR ho jaye',
+          reward: 500,
+          progress: Math.min(teamStats.totalDeposit, 5000),
+          target: 5000,
+          status: teamStats.totalDeposit >= 5000
+            ? (earnings.team_deposit_5k ? 'completed' : 'claimable')
+            : 'in_progress',
+          action: 'invite'
+        },
+        {
+          id: 'team_deposit_25k',
+          icon: '👑',
+          category: 'team',
+          title: 'Team Deposit: 25,000 PKR',
+          desc: 'Team ka total deposit 25,000 PKR ho jaye',
+          reward: 2000,
+          progress: Math.min(teamStats.totalDeposit, 25000),
+          target: 25000,
+          status: teamStats.totalDeposit >= 25000
+            ? (earnings.team_deposit_25k ? 'completed' : 'claimable')
+            : 'in_progress',
+          action: 'invite'
+        },
+        {
+          id: 'team_deposit_100k',
+          icon: '🏆',
+          category: 'team',
+          title: 'Team Deposit: 100,000 PKR',
+          desc: 'Team ka total deposit 100,000 PKR ho jaye',
+          reward: 10000,
+          progress: Math.min(teamStats.totalDeposit, 100000),
+          target: 100000,
+          status: teamStats.totalDeposit >= 100000
+            ? (earnings.team_deposit_100k ? 'completed' : 'claimable')
+            : 'in_progress',
+          action: 'invite'
+        }
+      ];
+    }
+
+    // ═══ RENDER ═══
+    function renderTasks() {
+      const allTasks = getTasks();
+      const filtered = currentTab === 'all'
+        ? allTasks
+        : allTasks.filter(t => t.category === currentTab);
+
+      const earnings = userData.taskEarnings || {};
+      const totalEarnings = Object.values(earnings).reduce((a, b) => a + b, 0);
+      document.getElementById('totalTaskEarnings').innerText = totalEarnings + ' PKR';
+
+      const completed = allTasks.filter(t => t.status === 'completed').length;
+      document.getElementById('completedCount').innerText = completed;
+      document.getElementById('availableCount').innerText =
+        allTasks.filter(t => t.status === 'claimable').length;
+
+      const list = document.getElementById('taskList');
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state">No tasks in this category</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(t => {
+        const perc = Math.min((t.progress / t.target) * 100, 100);
+        let btnHtml = '';
+        let progressText = '';
+
+        if (t.status === 'completed') {
+          btnHtml = `<button class="task-btn task-btn-done" disabled>✅ Done</button>`;
+          progressText = `Completed · <span class="reward">+${t.reward} PKR</span>`;
+        } else if (t.status === 'claimable') {
+          btnHtml = `<button class="task-btn task-btn-claim" data-action="claim" data-task="${t.id}">🎁 Claim ${t.reward} PKR</button>`;
+          progressText = `Ready · <span class="reward">+${t.reward} PKR</span>`;
+        } else if (t.status === 'in_progress') {
+          btnHtml = `<button class="task-btn task-btn-locked" disabled>⏳ In Progress</button>`;
+          progressText = `${t.progress.toLocaleString()}/${t.target.toLocaleString()} · <span class="reward">+${t.reward} PKR</span>`;
+        } else {
+          // available
+          btnHtml = `<button class="task-btn task-btn-claim" data-action="${t.action}" data-task="${t.id}">▶️ Start</button>`;
+          progressText = `Available · <span class="reward">+${t.reward} PKR</span>`;
+        }
+
+        return `
+          <div class="task-card">
+            <div class="task-icon">${t.icon}</div>
+            <div class="task-body">
+              <div class="task-title">${t.title}</div>
+              <div class="task-desc">${t.desc}</div>
+              ${t.target > 1 ? `
+                <div class="task-progress">
+                  <div class="task-progress-fill" style="width:${perc}%"></div>
+                </div>
+              ` : ''}
+              <div class="task-status">
+                <span>${progressText}</span>
+                <span>${t.status === 'completed' ? '✅' : ''}</span>
+              </div>
+            </div>
+            <div class="task-action">${btnHtml}</div>
+          </div>
+        `;
+      }).join('');
+
+      // Event listeners
+      list.querySelectorAll('button[data-action]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const action = btn.dataset.action;
+          const taskId = btn.dataset.task;
+          handleTaskAction(action, taskId);
+        });
+      });
+    }
+
+    // ═══ TASK ACTION ═══
+    async function handleTaskAction(action, taskId) {
+      if (action === 'checkin') {
+        await doCheckIn();
+      } else if (action === 'bind') {
+        window.location.href = 'withdraw.html';
+      } else if (action === 'plan') {
+        window.location.href = 'plans.html';
+      } else if (action === 'invite') {
+        window.location.href = 'team.html';
+      } else if (action === 'claim') {
+        await claimReward(taskId);
+      }
+    }
+
+    // ═══ DAILY CHECK-IN ═══
+    async function doCheckIn() {
+      const today = new Date().toDateString();
+      if (userData.lastCheckIn === today) {
+        showModal({
+          icon: '✅', type: 'warning', title: 'Already Checked In',
+          message: 'Aap ne aaj check-in kar liya hai. Kal dobara karein.'
+        });
+        return;
+      }
+
+      try {
+        const reward = 10;
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          mainBalance: increment(reward),
+          withdrawBalance: increment(reward),
+          lastCheckIn: today
+        });
+
+        // Record save
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          taskEarnings: {
+            ...(userData.taskEarnings || {}),
+            checkin: (userData.taskEarnings?.checkin || 0) + reward
+          }
+        });
+
+        showModal({
+          icon: '🎉', type: 'success', title: 'Check-in Successful!',
+          message: `Aap ko ${reward} PKR mil gaye. Kal dobara check-in karein.`,
+          okText: 'Great!', onOk: () => location.reload()
+        });
+      } catch (err) {
+        showModal({ icon: '❌', type: 'error', title: 'Error', message: err.message });
+      }
+    }
+
+    // ═══ CLAIM REWARD ═══
+    async function claimReward(taskId) {
+      const allTasks = getTasks();
+      const task = allTasks.find(t => t.id === taskId);
+
+      if (!task || task.status !== 'claimable') {
+        showModal({
+          icon: '⚠️', type: 'error', title: 'Cannot Claim',
+          message: 'Ye reward abhi claim nahin ho sakta.'
+        });
+        return;
+      }
+
+      showModal({
+        icon: '🎁', type: 'warning', title: 'Claim Reward?',
+        message: `"${task.title}" ka reward ${task.reward} PKR claim karein?`,
+        okText: '✅ Claim',
+        showCancel: true,
+        onOk: async () => {
+          try {
+            const earnings = userData.taskEarnings || {};
+            if (earnings[taskId]) {
+              showModal({
+                icon: '⚠️', type: 'error', title: 'Already Claimed',
+                message: 'Ye reward pehle claim kar chuke hain.'
+              });
+              return;
+            }
+
+            await updateDoc(doc(db, 'users', currentUser.uid), {
+              mainBalance: increment(task.reward),
+              withdrawBalance: increment(task.reward),
+              totalEarning: increment(task.reward),
+              [`taskEarnings.${taskId}`]: task.reward
+            });
+
+            showModal({
+              icon: '🎉', type: 'success', title: 'Reward Claimed!',
+              message: `${task.reward} PKR aap ke balance mein add ho gaye.`,
+              okText: 'OK', onOk: () => location.reload()
+            });
+          } catch (err) {
+            showModal({ icon: '❌', type: 'error', title: 'Error', message: err.message });
+          }
+        }
+      });
+    }
+
+    // ═══ TABS ═══
+    document.querySelectorAll('.task-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.task-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentTab = tab.dataset.tab;
+        renderTasks();
+      });
+    });
+
+    // ═══ LOGOUT ═══
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>

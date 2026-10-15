@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Withdraw - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ✅ Dropdown fix */
+    select.input-field {
+      background-color: rgba(0, 0, 0, 0.4) !important;
+      color: #fff !important;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 18px;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+    select.input-field option {
+      background-color: #1a1a2e !important;
+      color: #fff !important;
+      padding: 10px;
+    }
+    select.input-field option:checked {
+      background-color: #ffd700 !important;
+      color: #000 !important;
+    }
+
+    /* ✅ Autocomplete fix */
+    input.input-field:-webkit-autofill,
+    input.input-field:-webkit-autofill:hover,
+    input.input-field:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #1a1a2e inset !important;
+      -webkit-text-fill-color: #fff !important;
+      caret-color: #fff !important;
+    }
+    input.input-field:focus,
+    select.input-field:focus {
+      background-color: rgba(0, 0, 0, 0.5) !important;
+      color: #fff !important;
+      outline: none;
+      border-color: #ffd700 !important;
+    }
+
+    /* ✅ Bound account card */
+    .bound-account-card {
+      background: linear-gradient(135deg, rgba(0,200,83,0.15), rgba(0,121,107,0.08));
+      border: 1px solid rgba(0,200,83,0.4);
+      border-radius: 12px;
+      padding: 18px;
+      margin: 15px 0;
+    }
+    .bound-account-card h4 {
+      color: #28a745;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .bound-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 6px 0;
+      font-size: 13px;
+    }
+    .bound-row .label { color: #aaa; }
+    .bound-row .value { color: #fff; font-weight: 600; }
+
+    /* ✅ Professional Alert/Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-box {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 2px solid #ffd70055;
+      border-radius: 18px;
+      padding: 30px 25px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(255,215,0,0.2);
+      animation: modalIn 0.3s ease;
+    }
+    @keyframes modalIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .modal-icon {
+      font-size: 50px;
+      margin-bottom: 15px;
+    }
+    .modal-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .modal-message {
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .modal-actions button {
+      flex: 1;
+      padding: 12px;
+      border-radius: 25px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+    .modal-btn-primary {
+      background: linear-gradient(135deg, #ffd700, #ffa500);
+      color: #000;
+    }
+    .modal-btn-primary:hover { transform: scale(1.03); }
+
+    .modal-btn-secondary {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border: 1px solid #ffffff22 !important;
+    }
+    .modal-btn-secondary:hover { background: rgba(255,255,255,0.15); }
+
+    .modal-box.error { border-color: #ff555588; }
+    .modal-box.error .modal-icon { color: #ff5555; }
+    .modal-box.error .modal-title { color: #ff5555; }
+
+    .modal-box.success { border-color: #28a74588; }
+    .modal-box.success .modal-title { color: #28a745; }
+
+    .modal-box.warning { border-color: #ffd70088; }
+    .modal-box.warning .modal-title { color: #ffd700; }
+
+    /* Balance warning */
+    .balance-warning {
+      background: rgba(255,85,85,0.1);
+      border: 1px solid rgba(255,85,85,0.4);
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+      color: #ff8888;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">💰 Hamona International</div>
+    <div class="nav-links">
+       <a href="dashboard.html">Dashboard</a>
+      <a href="plans.html">Plans</a>
+      <a href="team.html">Team</a>
+      <a href="my-plan.html">My Plan</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="deposit-history.html">Deposit History</a>
+      <a href="withdraw-history.html">Withdraw History</a>
+      <a href="task.html">Task</a>
+      <a href="support.html">Support</a>
+      <a href="#" id="logoutBtn" style="color:#ff5555;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="max-width:600px; margin:30px auto; padding:20px;">
+
+    <!-- Loading -->
+    <div id="loadingCard" class="card" style="text-align:center;">
+      <h2 style="color:#ffd700;">⏳ Loading...</h2>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display:none;">
+
+      <!-- Balance Box -->
+      <div class="card" style="background:linear-gradient(135deg,#00c853,#00796b); padding:22px; text-align:center; margin-bottom:15px;">
+        <p style="color:#fff; font-size:13px;">Available Withdraw Balance</p>
+        <h2 id="wBalance" style="font-size:32px; color:#fff; margin:5px 0;">0 PKR</h2>
+        <p style="color:#fff; font-size:12px; margin-top:5px;">
+          Plan: <b id="planName">-</b>
+        </p>
+      </div>
+
+      <!-- Balance Warning (if < 300) -->
+      <div id="balanceWarning" class="balance-warning" style="display:none;">
+        ⚠️ Your balance is less than 300 PKR
+      </div>
+
+      <!-- ═══ SECTION 1: BIND ACCOUNT ═══ -->
+      <div id="bindSection" class="card" style="margin-bottom:15px;">
+        <h3 style="color:#ffd700; margin-bottom:12px;">🔗 Bind Withdraw Account</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:15px;">
+          Apna Easypaisa / JazzCash / Bank account save karein — bar bar type karne ki zaroorat nahin
+        </p>
+
+        <!-- Agar account bound hai -->
+        <div id="boundAccountDisplay" style="display:none;">
+          <div class="bound-account-card">
+            <h4>✅ Account Bound</h4>
+            <div class="bound-row">
+              <span class="label">Method:</span>
+              <span class="value" id="boundMethod">-</span>
+            </div>
+            <div class="bound-row">
+              <span class="label">Account No:</span>
+              <span class="value" id="boundNo">-</span>
+            </div>
+            <div class="bound-row">
+              <span class="label">Holder:</span>
+              <span class="value" id="boundName">-</span>
+            </div>
+          </div>
+          <button class="btn" id="changeAccountBtn"
+                  style="width:100%; margin-top:12px; background:rgba(255,255,255,0.08); color:#fff;">
+            🔄 Change Account
+          </button>
+        </div>
+
+        <!-- Form to bind (agar bound nahin hai) -->
+        <div id="bindForm" style="display:none;">
+          <p style="color:#aaa;">Payment Method</p>
+          <select id="bindMethod" class="input-field">
+            <option value="Easypaisa">Easypaisa</option>
+            <option value="JazzCash">JazzCash</option>
+            <option value="Bank Transfer">Bank Transfer</option>
+          </select>
+
+          <p style="color:#aaa; margin-top:12px;">Account Number</p>
+          <input type="text" id="bindNo" class="input-field" placeholder="03XX-XXXXXXX">
+
+          <p style="color:#aaa; margin-top:12px;">Account Holder Name</p>
+          <input type="text" id="bindName" class="input-field" placeholder="Full name as per account">
+
+          <button class="btn" id="saveBindBtn" style="width:100%; margin-top:15px;">
+            💾 Save Account
+          </button>
+        </div>
+      </div>
+
+      <!-- ═══ SECTION 2: WITHDRAW FORM ═══ -->
+      <div class="card">
+        <h3 style="color:#ffd700; margin-bottom:15px;">💸 Request Withdrawal</h3>
+
+        <p style="color:#aaa;">Amount (PKR)</p>
+        <input type="number" id="amount" class="input-field" placeholder="Enter amount (min 300)">
+
+        <div style="background:rgba(255,215,0,0.08); padding:10px; border-radius:8px; margin-top:12px; border:1px solid #ffd70033;">
+          <p style="color:#ffd700; font-size:12px; text-align:center;">
+            💡 Minimum withdraw: 300 PKR
+          </p>
+        </div>
+
+        <button class="btn" id="submitBtn" style="width:100%; margin-top:20px;">
+          📤 Request Withdrawal
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ PROFESSIONAL MODAL ALERT ═══ -->
+  <div id="alertModal" class="modal-overlay">
+    <div class="modal-box" id="modalBox">
+      <div class="modal-icon" id="modalIcon">⚠️</div>
+      <div class="modal-title" id="modalTitle">Alert</div>
+      <div class="modal-message" id="modalMessage">Message</div>
+      <div class="modal-actions" id="modalActions">
+        <button class="modal-btn-secondary" id="modalCancelBtn">Cancel</button>
+        <button class="modal-btn-primary" id="modalOkBtn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '/firebase-config.js';
+    import { onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc, addDoc, collection, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let currentUser = null;
+    let userData = null;
+    const MIN_WITHDRAW = 300;
+
+    // ═══ MODAL FUNCTIONS ═══
+    function showAlert({ icon = '⚠️', title, message, type = 'warning',
+                        okText = 'OK', onOk = null,
+                        showCancel = false, cancelText = 'Cancel' }) {
+      const modal = document.getElementById('alertModal');
+      const box = document.getElementById('modalBox');
+      const actions = document.getElementById('modalActions');
+
+      document.getElementById('modalIcon').innerText = icon;
+      document.getElementById('modalTitle').innerText = title;
+      document.getElementById('modalMessage').innerText = message;
+
+      box.className = 'modal-box ' + type;
+
+      // Actions
+      actions.innerHTML = '';
+      if (showCancel) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'modal-btn-secondary';
+        cancelBtn.innerText = cancelText;
+        cancelBtn.onclick = () => { modal.classList.remove('show'); };
+        actions.appendChild(cancelBtn);
+      }
+      const okBtn = document.createElement('button');
+      okBtn.className = 'modal-btn-primary';
+      okBtn.innerText = okText;
+      okBtn.onclick = () => {
+        modal.classList.remove('show');
+        if (onOk) onOk();
+      };
+      actions.appendChild(okBtn);
+
+      modal.classList.add('show');
+    }
+
+    // ═══ AUTH + LOAD USER ═══
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUser = user;
+
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        userData = snap.data();
+
+        document.getElementById('loadingCard').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+
+        // Balance show karein
+        const wb = userData.withdrawBalance || 0;
+        document.getElementById('wBalance').innerText = wb + ' PKR';
+        document.getElementById('planName').innerText =
+          userData.activePlan?.name || 'No Plan';
+
+        // Balance warning agar < 300
+        if (wb < MIN_WITHDRAW) {
+          document.getElementById('balanceWarning').style.display = 'block';
+        }
+
+        // Bind account section
+        if (userData.withdrawAccount) {
+          // Account already bound
+          document.getElementById('boundAccountDisplay').style.display = 'block';
+          document.getElementById('boundMethod').innerText = userData.withdrawAccount.method;
+          document.getElementById('boundNo').innerText = userData.withdrawAccount.accountNo;
+          document.getElementById('boundName').innerText = userData.withdrawAccount.accountName;
+        } else {
+          // Bind form dikhao
+          document.getElementById('bindForm').style.display = 'block';
+        }
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById('loadingCard').innerHTML =
+          `<p style="color:#ff5555;">❌ Error: ${err.message}</p>`;
+      }
+    });
+
+    // ═══ CHANGE ACCOUNT BUTTON ═══
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'changeAccountBtn') {
+        document.getElementById('boundAccountDisplay').style.display = 'none';
+        document.getElementById('bindForm').style.display = 'block';
+      }
+    });
+
+    // ═══ SAVE BIND ACCOUNT ═══
+    document.addEventListener('click', async (e) => {
+      if (e.target.id !== 'saveBindBtn') return;
+
+      const method = document.getElementById('bindMethod').value;
+      const accountNo = document.getElementById('bindNo').value.trim();
+      const accountName = document.getElementById('bindName').value.trim();
+
+      if (!accountNo || !accountName) {
+        showAlert({
+          icon: '⚠️', type: 'error', title: 'Incomplete Details',
+          message: 'Account number aur holder name dono fill karein'
+        });
+        return;
+      }
+
+      try {
+        await updateDoc(doc(db, 'users', currentUser.uid), {
+          withdrawAccount: {
+            method, accountNo, accountName,
+            boundAt: serverTimestamp()
+          }
+        });
+
+        userData.withdrawAccount = { method, accountNo, accountName };
+
+        // UI update karein
+        document.getElementById('boundMethod').innerText = method;
+        document.getElementById('boundNo').innerText = accountNo;
+        document.getElementById('boundName').innerText = accountName;
+        document.getElementById('bindForm').style.display = 'none';
+        document.getElementById('boundAccountDisplay').style.display = 'block';
+
+        showAlert({
+          icon: '✅', type: 'success', title: 'Account Bound!',
+          message: 'Aap ka account successfully bind ho gaya. Ab aap withdraw kar sakte hain.',
+          okText: 'Great!'
+        });
+
+      } catch (err) {
+        showAlert({
+          icon: '❌', type: 'error', title: 'Error',
+          message: 'Account save nahin hua: ' + err.message
+        });
+      }
+    });
+
+    // ═══ SUBMIT WITHDRAW ═══
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      if (!currentUser || !userData) return;
+
+      const amount = parseFloat(document.getElementById('amount').value);
+
+      // ✅ CHECK 1: Plan kharida hai?
+      if (!userData.activePlan) {
+        showAlert({
+          icon: '🔒', type: 'error', title: 'Plan Required',
+          message: 'Withdraw karne ke liye pehle investment plan kharidna zaroori hai.',
+          okText: '📈 Buy a Plan',
+          onOk: () => window.location.href = 'plans.html'
+        });
+        return;
+      }
+
+      // ✅ CHECK 2: Account bind kiya hai?
+      if (!userData.withdrawAccount) {
+        showAlert({
+          icon: '🔗', type: 'error', title: 'Bind Account First',
+          message: 'Withdraw karne se pehle apna Easypaisa/JazzCash/Bank account bind karein.',
+          okText: 'Bind Now',
+          onOk: () => {
+            document.getElementById('bindForm').scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+        return;
+      }
+
+      // ✅ CHECK 3: Minimum 300
+      if (!amount || amount < MIN_WITHDRAW) {
+        showAlert({
+          icon: '💵', type: 'warning', title: 'Minimum Withdraw',
+          message: `Minimum withdraw amount ${MIN_WITHDRAW} PKR hai. Aap ne ${amount || 0} PKR daala hai.`,
+          okText: 'OK'
+        });
+        return;
+      }
+
+      // ✅ CHECK 4: Balance kaafi hai?
+      if (amount > (userData.withdrawBalance || 0)) {
+        showAlert({
+          icon: '⚠️', type: 'error', title: 'Insufficient Balance',
+          message: `Your balance is less than ${amount} PKR.\nAvailable: ${userData.withdrawBalance || 0} PKR`,
+          okText: 'OK'
+        });
+        return;
+      }
+
+      // ✅ SAB THEEK → SUBMIT
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = '⏳ Submitting...';
+
+      try {
+        await addDoc(collection(db, 'withdrawals'), {
+          userId: currentUser.uid,
+          amount,
+          method: userData.withdrawAccount.method,
+          accountNo: userData.withdrawAccount.accountNo,
+          accountName: userData.withdrawAccount.accountName,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+
+        showAlert({
+          icon: '✅', type: 'success', title: 'Request Submitted!',
+          message: `Aap ki ${amount} PKR withdraw request submit ho gayi. 24-48 ghante mein process hogi.`,
+          okText: 'OK',
+          onOk: () => window.location.href = 'dashboard.html'
+        });
+
+      } catch (err) {
+        console.error(err);
+        showAlert({
+          icon: '❌', type: 'error', title: 'Error',
+          message: err.message
+        });
+        btn.disabled = false;
+        btn.innerText = '📤 Request Withdrawal';
+      }
+    });
+
+    // ═══ LOGOUT ═══
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>

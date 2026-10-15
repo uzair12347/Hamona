@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deposit - Hamona International</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ✅ FIX: Select dropdown white background */
+    select.input-field {
+      background-color: rgba(0, 0, 0, 0.4) !important;
+      color: #fff !important;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 18px;
+      padding-right: 40px;
+      cursor: pointer;
+    }
+    select.input-field option {
+      background-color: #1a1a2e !important;
+      color: #fff !important;
+      padding: 10px;
+    }
+    select.input-field option:checked,
+    select.input-field option:hover {
+      background-color: #ffd700 !important;
+      color: #000 !important;
+    }
+
+    /* ✅ FIX: Autocomplete white background */
+    input.input-field:-webkit-autofill,
+    input.input-field:-webkit-autofill:hover,
+    input.input-field:-webkit-autofill:focus {
+      -webkit-box-shadow: 0 0 0 1000px #1a1a2e inset !important;
+      -webkit-text-fill-color: #fff !important;
+      caret-color: #fff !important;
+    }
+
+    /* ✅ FIX: Focus state */
+    input.input-field:focus,
+    select.input-field:focus {
+      background-color: rgba(0, 0, 0, 0.5) !important;
+      color: #fff !important;
+      outline: none;
+      border-color: #ffd700 !important;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">💰 Hamona International</div>
+    <div class="nav-links">
+       <a href="dashboard.html">Dashboard</a>
+      <a href="plans.html">Plans</a>
+      <a href="team.html">Team</a>
+      <a href="my-plan.html">My Plan</a>
+      <a href="deposit.html">Deposit</a>
+      <a href="withdraw.html">Withdraw</a>
+      <a href="deposit-history.html">Deposit History</a>
+      <a href="withdraw-history.html">Withdraw History</a>
+      <a href="task.html">Task</a>
+      <a href="support.html">Support</a>
+      <a href="#" id="logoutBtn" style="color:#ff5555;">Logout</a>
+    </div>
+  </nav>
+
+  <div style="max-width:600px; margin:50px auto; padding:20px;">
+    <div class="card">
+      <h1 style="color:#ffd700; text-align:center;">💵 Deposit Funds</h1>
+      <p style="color:#aaa; text-align:center; margin:10px 0 20px;">Add money to your account</p>
+
+      <p style="color:#aaa;">Amount (PKR)</p>
+      <input type="number" id="amount" class="input-field" placeholder="Enter amount (min 500)">
+
+      <p style="color:#aaa; margin-top:15px;">Payment Method</p>
+      <select id="method" class="input-field">
+        <option value="Easypaisa">Easypaisa</option>
+        <option value="JazzCash">JazzCash</option>
+        <option value="Bank Transfer">Bank Transfer</option>
+        <option value="USDT (TRC20)">USDT (BEP20)</option>
+      </select>
+
+      <div style="background:rgba(255,215,0,0.1); padding:15px; border-radius:10px; margin:15px 0; border:1px solid rgba(255,215,0,0.2);">
+        <p style="color:#ffd700; font-weight:600;">Payment Details:</p>
+        <p style="margin-top:8px; color:#fff;">Easypaisa: <b>03XX-XXXXXXX</b></p>
+        <p style="color:#fff;">JazzCash: <b>03XX-XXXXXXX</b></p>
+        <p style="color:#fff;">Account Name: <b>Hamona International</b></p>
+      </div>
+
+      <p style="color:#aaa;">Transaction ID</p>
+      <input type="text" id="txnId" class="input-field" placeholder="Transaction ID / Screenshot Reference">
+
+      <button class="btn" id="submitBtn" style="width:100%; margin-top:20px;">
+        Submit Deposit Request
+      </button>
+
+      <p id="message" style="text-align:center; margin-top:15px; font-size:14px;"></p>
+    </div>
+  </div>
+
+  <script type="module">
+    // ✅ FIXED PATH
+    import { auth, db } from '/firebase-config.js';
+    import { onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { addDoc, collection, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    let currentUser = null;
+    const msg = document.getElementById('message');
+    const btn = document.getElementById('submitBtn');
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = 'login.html';
+        return;
+      }
+      currentUser = user;
+    });
+
+    btn.addEventListener('click', async () => {
+      if (!currentUser) {
+        msg.style.color = '#ff5555';
+        msg.innerText = '⚠️ Please wait, checking login...';
+        return;
+      }
+
+      const amount = parseFloat(document.getElementById('amount').value);
+      const method = document.getElementById('method').value;
+      const txnId = document.getElementById('txnId').value.trim();
+
+      if (!amount || amount < 500) {
+        msg.style.color = '#ff5555';
+        msg.innerText = '⚠️ Minimum deposit is 500 PKR';
+        return;
+      }
+      if (!txnId) {
+        msg.style.color = '#ff5555';
+        msg.innerText = '⚠️ Enter transaction ID';
+        return;
+      }
+
+      msg.style.color = '#ffd700';
+      msg.innerText = '⏳ Submitting...';
+      btn.disabled = true;
+
+      try {
+        await addDoc(collection(db, 'deposits'), {
+          userId: currentUser.uid,
+          amount,
+          method,
+          txnId,
+          status: 'pending',
+          createdAt: serverTimestamp()
+        });
+
+        msg.style.color = '#28a745';
+        msg.innerText = '✅ Deposit request submitted! Admin will approve within 24 hours.';
+        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+
+      } catch (err) {
+        console.error(err);
+        msg.style.color = '#ff5555';
+        msg.innerText = '❌ Error: ' + err.message;
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await signOut(auth);
+      window.location.href = 'login.html';
+    });
+  </script>
+</body>
+</html>
