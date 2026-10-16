@@ -6,7 +6,7 @@
   <title>Deposit - Hamona International</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* ✅ FIX: Select dropdown white background */
+    /* ✅ Select dropdown fix */
     select.input-field {
       background-color: rgba(0, 0, 0, 0.4) !important;
       color: #fff !important;
@@ -25,13 +25,12 @@
       color: #fff !important;
       padding: 10px;
     }
-    select.input-field option:checked,
-    select.input-field option:hover {
+    select.input-field option:checked {
       background-color: #ffd700 !important;
       color: #000 !important;
     }
 
-    /* ✅ FIX: Autocomplete white background */
+    /* ✅ Autocomplete fix */
     input.input-field:-webkit-autofill,
     input.input-field:-webkit-autofill:hover,
     input.input-field:-webkit-autofill:focus {
@@ -39,8 +38,6 @@
       -webkit-text-fill-color: #fff !important;
       caret-color: #fff !important;
     }
-
-    /* ✅ FIX: Focus state */
     input.input-field:focus,
     select.input-field:focus {
       background-color: rgba(0, 0, 0, 0.5) !important;
@@ -48,17 +45,113 @@
       outline: none;
       border-color: #ffd700 !important;
     }
+
+    /* ✅ Payment details box */
+    .payment-box {
+      background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,165,0,0.05));
+      border: 2px solid #ffd70055;
+      border-radius: 12px;
+      padding: 18px;
+      margin: 18px 0;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .payment-box .box-title {
+      color: #ffd700;
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .payment-box .box-title .icon { font-size: 18px; }
+
+    .payment-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #ffd70022;
+      gap: 10px;
+    }
+    .payment-row:last-child { border-bottom: none; }
+
+    .payment-row .label {
+      color: #aaa;
+      font-size: 12px;
+      min-width: 80px;
+    }
+    .payment-row .value {
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      word-break: break-all;
+      text-align: right;
+      flex: 1;
+    }
+    .payment-row .value.mono {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #ffd700;
+      letter-spacing: 0.5px;
+    }
+
+    .copy-btn {
+      background: rgba(255,215,0,0.15);
+      border: 1px solid #ffd70055;
+      color: #ffd700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      white-space: nowrap;
+    }
+    .copy-btn:hover {
+      background: #ffd700;
+      color: #000;
+    }
+
+    .warning-note {
+      background: rgba(255,85,85,0.1);
+      border-left: 3px solid #ff5555;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #ff8888;
+      font-size: 12px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .info-note {
+      background: rgba(33,150,243,0.1);
+      border-left: 3px solid #2196f3;
+      padding: 10px 12px;
+      border-radius: 6px;
+      color: #90caf9;
+      font-size: 12px;
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
   <nav class="navbar">
     <div class="logo">💰 Hamona International</div>
     <div class="nav-links">
-       <a href="dashboard.html">Dashboard</a>
+      <a href="dashboard.html">Dashboard</a>
       <a href="plans.html">Plans</a>
       <a href="team.html">Team</a>
       <a href="my-plan.html">My Plan</a>
-      <a href="deposit.html">Deposit</a>
+      <a href="deposit.html" style="color:#ffd700;">Deposit</a>
       <a href="withdraw.html">Withdraw</a>
       <a href="deposit-history.html">Deposit History</a>
       <a href="withdraw-history.html">Withdraw History</a>
@@ -73,37 +166,132 @@
       <h1 style="color:#ffd700; text-align:center;">💵 Deposit Funds</h1>
       <p style="color:#aaa; text-align:center; margin:10px 0 20px;">Add money to your account</p>
 
+      <!-- Amount -->
       <p style="color:#aaa;">Amount (PKR)</p>
-      <input type="number" id="amount" class="input-field" placeholder="Enter amount (min 500)">
+      <input type="number" id="amount" class="input-field"
+             placeholder="Enter amount (min 500)">
 
+      <!-- Method Select -->
       <p style="color:#aaa; margin-top:15px;">Payment Method</p>
       <select id="method" class="input-field">
-        <option value="Easypaisa">Easypaisa</option>
-        <option value="Bank Transfer">Bank Transfer</option>
-        <option value="USDT (TRC20)">USDT (BEP20)</option>
+        <option value="">-- Select Payment Method --</option>
+        <option value="Easypaisa">📱 Easypaisa</option>
+        <option value="JazzCash">💳 JazzCash</option>
+        <option value="Bank Transfer">🏦 Bank Transfer</option>
+        <option value="USDT (BEP20)">💰 USDT (BEP20)</option>
       </select>
 
-      <div style="background:rgba(255,215,0,0.1); padding:15px; border-radius:10px; margin:15px 0; border:1px solid rgba(255,215,0,0.2);">
-        <p style="color:#ffd700; font-weight:600;">Payment Details:</p>
-        <p style="margin-top:8px; color:#fff;">Easypaisa: <b>03XX-XXXXXXX</b></p>
-        <p style="color:#fff;">JazzCash: <b>03XX-XXXXXXX</b></p>
-        <p style="color:#fff;">Account Name: <b>Hamona International</b></p>
+      <!-- ═══ PAYMENT DETAILS — METHOD KE HISAAB SE ═══ -->
+
+      <!-- Easypaisa Details -->
+      <div id="easypaisaDetails" class="payment-box hidden">
+        <div class="box-title">
+          <span class="icon">📱</span> Easypaisa Payment Details
+        </div>
+        <div class="payment-row">
+          <span class="label">Number</span>
+          <span class="value mono" id="easypaisaNumber">03320217021</span>
+          <button class="copy-btn" data-copy="easypaisaNumber">📋 Copy</button>
+        </div>
+        <div class="payment-row">
+          <span class="label">Account</span>
+          <span class="value">Hamona International</span>
+        </div>
+        <div class="info-note">
+          💡 Payment ke baad Easypaisa app se <b>Transaction ID</b> copy karein aur neeche daalein.
+        </div>
       </div>
 
-      <p style="color:#aaa;">Transaction ID</p>
-      <input type="text" id="txnId" class="input-field" placeholder="Transaction ID / Screenshot Reference">
+      <!-- JazzCash Details -->
+      <div id="jazzcashDetails" class="payment-box hidden">
+        <div class="box-title">
+          <span class="icon">💳</span> JazzCash Payment Details
+        </div>
+        <div class="payment-row">
+          <span class="label">Number</span>
+          <span class="value mono" id="jazzcashNumber">03320217021</span>
+          <button class="copy-btn" data-copy="jazzcashNumber">📋 Copy</button>
+        </div>
+        <div class="payment-row">
+          <span class="label">Account</span>
+          <span class="value">Hamona International</span>
+        </div>
+        <div class="info-note">
+          💡 Payment ke baad JazzCash app se <b>Transaction ID</b> copy karein aur neeche daalein.
+        </div>
+      </div>
 
-      <button class="btn" id="submitBtn" style="width:100%; margin-top:20px;">
-        Submit Deposit Request
-      </button>
+      <!-- Bank Transfer Details -->
+      <div id="bankDetails" class="payment-box hidden">
+        <div class="box-title">
+          <span class="icon">🏦</span> Bank Transfer Details
+        </div>
+        <div class="payment-row">
+          <span class="label">Bank</span>
+          <span class="value">Meezan Bank</span>
+        </div>
+        <div class="payment-row">
+          <span class="label">Account #</span>
+          <span class="value mono" id="bankAccount">PK00MEZN0000000000000000</span>
+          <button class="copy-btn" data-copy="bankAccount">📋 Copy</button>
+        </div>
+        <div class="payment-row">
+          <span class="label">Title</span>
+          <span class="value">Hamona International</span>
+        </div>
+        <div class="info-note">
+          💡 Transfer ke baad bank se <b>Transaction Reference</b> lein aur neeche daalein.
+        </div>
+      </div>
 
-      <p id="message" style="text-align:center; margin-top:15px; font-size:14px;"></p>
+      <!-- USDT BEP20 Details -->
+      <div id="usdtDetails" class="payment-box hidden">
+        <div class="box-title">
+          <span class="icon">💰</span> USDT (BEP20) Payment Details
+        </div>
+        <div class="payment-row">
+          <span class="label">Network</span>
+          <span class="value" style="color:#ffd700;">BEP20 (BSC)</span>
+        </div>
+        <div class="payment-row">
+          <span class="label">Wallet</span>
+          <span class="value mono" id="usdtWallet" style="font-size:11px;">
+            0x1234567890abcdef1234567890abcdef12345678
+          </span>
+        </div>
+        <button class="copy-btn" style="width:100%; margin-top:10px; padding:10px;"
+                data-copy="usdtWallet">
+          📋 Copy Wallet Address
+        </button>
+        <div class="warning-note">
+          ⚠️ <b>Important:</b> Sirf <b>BEP20 (BSC)</b> network par USDT bhejein.
+          Warna aap ka paisa gum ho sakta hai. Doosre network (TRC20, ERC20) accept nahin honge.
+        </div>
+      </div>
+
+      <!-- ═══ TRANSACTION ID ═══ -->
+      <div id="txnSection" class="hidden">
+        <p style="color:#aaa;">Transaction ID / Reference</p>
+        <input type="text" id="txnId" class="input-field"
+               placeholder="Enter Transaction ID">
+
+        <button class="btn" id="submitBtn" style="width:100%; margin-top:20px;">
+          Submit Deposit Request
+        </button>
+
+        <p id="message" style="text-align:center; margin-top:15px; font-size:14px;"></p>
+      </div>
+
+      <!-- Placeholder -->
+      <p id="placeholder" style="text-align:center; color:#666; margin-top:20px; font-size:13px;">
+        💡 Upar se payment method select karein
+      </p>
+
     </div>
   </div>
 
   <script type="module">
-    // ✅ FIXED PATH
-    import { auth, db } from '/firebase-config.js';
+    import { auth, db } from './js/firebase-config.js';
     import { onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { addDoc, collection, serverTimestamp }
@@ -112,15 +300,81 @@
     let currentUser = null;
     const msg = document.getElementById('message');
     const btn = document.getElementById('submitBtn');
+    const methodSelect = document.getElementById('method');
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = 'login.html';
+    // ═══ Method → Details mapping ═══
+    const DETAILS_MAP = {
+      'Easypaisa': 'easypaisaDetails',
+      'JazzCash': 'jazzcashDetails',
+      'Bank Transfer': 'bankDetails',
+      'USDT (BEP20)': 'usdtDetails'
+    };
+
+    // ═══ Method Change Handler ═══
+    methodSelect.addEventListener('change', () => {
+      const method = methodSelect.value;
+
+      // Sab hide karein
+      Object.values(DETAILS_MAP).forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+
+      // Placeholder + txn section hide
+      document.getElementById('placeholder').classList.add('hidden');
+      document.getElementById('txnSection').classList.add('hidden');
+
+      if (!method) {
+        document.getElementById('placeholder').classList.remove('hidden');
         return;
       }
+
+      // Sirf selected method ki details dikhayein
+      const detailId = DETAILS_MAP[method];
+      if (detailId) {
+        document.getElementById(detailId).classList.remove('hidden');
+        document.getElementById('txnSection').classList.remove('hidden');
+      }
+    });
+
+    // ═══ COPY BUTTONS ═══
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const targetId = btn.dataset.copy;
+        const targetEl = document.getElementById(targetId);
+        if (!targetEl) return;
+
+        const text = targetEl.innerText.trim();
+        try {
+          await navigator.clipboard.writeText(text);
+          const original = btn.innerText;
+          btn.innerText = '✅ Copied!';
+          btn.style.background = '#28a745';
+          btn.style.color = '#fff';
+          setTimeout(() => {
+            btn.innerText = original;
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 1500);
+        } catch (err) {
+          // Fallback
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          alert('Copied!');
+        }
+      });
+    });
+
+    // ═══ AUTH ═══
+    onAuthStateChanged(auth, (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
       currentUser = user;
     });
 
+    // ═══ SUBMIT ═══
     btn.addEventListener('click', async () => {
       if (!currentUser) {
         msg.style.color = '#ff5555';
@@ -129,9 +383,15 @@
       }
 
       const amount = parseFloat(document.getElementById('amount').value);
-      const method = document.getElementById('method').value;
+      const method = methodSelect.value;
       const txnId = document.getElementById('txnId').value.trim();
 
+      // Validations
+      if (!method) {
+        msg.style.color = '#ff5555';
+        msg.innerText = '⚠️ Payment method select karein';
+        return;
+      }
       if (!amount || amount < 500) {
         msg.style.color = '#ff5555';
         msg.innerText = '⚠️ Minimum deposit is 500 PKR';
@@ -159,7 +419,7 @@
 
         msg.style.color = '#28a745';
         msg.innerText = '✅ Deposit request submitted! Admin will approve within 24 hours.';
-        setTimeout(() => window.location.href = 'dashboard.html', 1500);
+        setTimeout(() => window.location.href = 'deposit-history.html', 1800);
 
       } catch (err) {
         console.error(err);
@@ -169,6 +429,7 @@
       }
     });
 
+    // ═══ LOGOUT ═══
     document.getElementById('logoutBtn').addEventListener('click', async (e) => {
       e.preventDefault();
       await signOut(auth);
